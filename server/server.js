@@ -1,4 +1,3 @@
-// Force Node.js to use Google's Public DNS servers to resolve MongoDB Atlas SRV records
 const dns = require("dns");
 dns.setServers(["8.8.8.8", "8.8.4.4"]);
 
@@ -26,7 +25,6 @@ app.get("/", (req, res) => {
 
 // Database Connection Status Endpoint (Verification Route)
 app.get("/api/db-status", (req, res) => {
-  // Mongoose readyState values: 0 = Disconnected, 1 = Connected, 2 = Connecting, 3 = Disconnecting
   const state = mongoose.connection.readyState;
   const statusMap = {
     0: "Disconnected",
@@ -58,20 +56,26 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: "Internal Server Error", details: err.message });
 });
 
-// MongoDB Atlas Connection
-const PORT = process.env.PORT || 5000;
+// MongoDB Atlas Connection (Cached for serverless environments like Vercel)
 const MONGODB_URI = process.env.MONGODB_URI;
 
-mongoose
-  .connect(MONGODB_URI, {
+if (MONGODB_URI && mongoose.connection.readyState === 0) {
+  mongoose.connect(MONGODB_URI, {
     family: 4 // Forces IPv4 resolution
-  })
-  .then(() => {
+  }).then(() => {
     console.log("Connected successfully to MongoDB Atlas!");
-    app.listen(PORT, () => {
-      console.log(`Server running at http://localhost:${PORT}`);
-    });
-  })
-  .catch((err) => {
+  }).catch((err) => {
     console.error("MongoDB Atlas Connection Error:", err.message);
   });
+}
+
+// Only listen locally if not running on Vercel serverless
+const PORT = process.env.PORT || 5000;
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`Server running at http://localhost:${PORT}`);
+  });
+}
+
+// Export app for Vercel serverless deployment
+module.exports = app;

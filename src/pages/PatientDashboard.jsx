@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { API_URL } from "../api";
-import { Activity, Clock, User, FileText, CheckCircle, ClipboardList, Pill, Stethoscope, HeartPulse, Thermometer } from "lucide-react";
+import { Activity, Clock, User, FileText, CheckCircle, ClipboardList, Pill, Stethoscope, HeartPulse, Thermometer, Calendar } from "lucide-react";
+import BookAppointmentModal from "../components/BookAppointmentModal"; // 🌟 1. Imported Appointment Modal
 
 export default function PatientDashboard() {
   const [patientRecord, setPatientRecord] = useState({
@@ -9,6 +10,9 @@ export default function PatientDashboard() {
     code: "NEUR-01",
     headDoctor: "Dr. Sarah Ahmed"
   });
+
+  // 🌟 2. State for Modal Open/Close Toggle
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const patientEmail = localStorage.getItem("userEmail") || "patient@example.com";
 
@@ -29,15 +33,38 @@ export default function PatientDashboard() {
     <div style={{ maxWidth: "900px", margin: "2rem auto", padding: "1.5rem" }}>
       <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "2rem", border: "1px solid #e0f2fe", boxShadow: "0 4px 20px rgba(0,0,0,0.05)" }}>
         
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1rem" }}>
-          <div style={{ padding: "10px", backgroundColor: "#e0f2fe", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <User color="#0ea5e9" size={32} />
+        {/* Header with "Book Appointment" Action */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", borderBottom: "1px solid #f1f5f9", paddingBottom: "1rem", flexWrap: "wrap", gap: "1rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div style={{ padding: "10px", backgroundColor: "#e0f2fe", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <User color="#0ea5e9" size={32} />
+            </div>
+            <div>
+              <h1 style={{ fontSize: "1.5rem", margin: 0, color: "#0c4a6e" }}>Patient Electronic Health Record (EHR)</h1>
+              <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>Patient Email: {patientEmail} | Record ID: #CRG-94821</p>
+            </div>
           </div>
-          <div>
-            <h1 style={{ fontSize: "1.5rem", margin: 0, color: "#0c4a6e" }}>Patient Electronic Health Record (EHR)</h1>
-            <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>Patient Email: {patientEmail} | Record ID: #CRG-94821</p>
-          </div>
+
+          {/* 🌟 3. "Book Appointment" Trigger Button */}
+          <button
+            onClick={() => setIsModalOpen(true)}
+            style={{
+              backgroundColor: "#0ea5e9",
+              color: "#ffffff",
+              padding: "0.75rem 1.25rem",
+              borderRadius: "10px",
+              fontWeight: "700",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              boxShadow: "0 4px 14px rgba(14, 165, 233, 0.35)",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <Calendar size={18} /> Book Appointment
+          </button>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
@@ -171,6 +198,9 @@ export default function PatientDashboard() {
 
         </div>
       </div>
+
+      {/* 🌟 4. Render Appointment Modal Component */}
+      <BookAppointmentModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

@@ -6,6 +6,7 @@ import DepartmentDetail from "./pages/DepartmentDetail";
 import Dashboard from "./pages/Dashboard";
 import Auth from "./pages/Auth";
 import TriageQueue from "./pages/TriageQueue";
+import PatientDashboard from "./pages/PatientDashboard"; // 🌟 Added Patient Dashboard import
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="/triage-queue" element={<TriageQueue />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/patient-dashboard" element={<PatientDashboard />} /> {/* 🌟 Added Patient Route */}
         </Routes>
       </main>
     </Router>

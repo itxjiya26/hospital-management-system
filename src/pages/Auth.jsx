@@ -7,7 +7,7 @@ export default function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [role, setRole] = useState("Doctor / Triage Nurse");
+  const [role, setRole] = useState("Patient");
 
   // State for Feedback Messages
   const [successMsg, setSuccessMsg] = useState("");
@@ -22,7 +22,7 @@ export default function Auth() {
 
     // Form Validation Rules
     if (!email.trim() || !email.includes("@")) {
-      setErrorMessage("Please enter a valid hospital email address.");
+      setErrorMessage("Please enter a valid email address.");
       return;
     }
 
@@ -38,11 +38,23 @@ export default function Auth() {
 
     // Process Submission
     if (isLogin) {
-      setSuccessMsg("Authentication successful! Redirecting to Dashboard...");
+      // 1. Save logged-in user credentials to localStorage
+      localStorage.setItem("userEmail", email);
+      localStorage.setItem("userRole", role);
+
+      setSuccessMsg("Authentication successful! Redirecting...");
+
+      // 2. Redirect based on selected user role
       setTimeout(() => {
-        navigate("/dashboard");
+        if (role === "Patient") {
+          navigate("/patient-dashboard");
+        } else {
+          navigate("/dashboard");
+        }
       }, 1200);
+
     } else {
+      // Registration flow
       setSuccessMsg("Account registered successfully! Please sign in.");
       setTimeout(() => {
         setIsLogin(true);
@@ -93,12 +105,12 @@ export default function Auth() {
             <Shield size={28} />
           </div>
           <h1 style={{ fontSize: "1.75rem", fontWeight: "800", color: "#0c4a6e", margin: "0 0 0.4rem 0" }}>
-            {isLogin ? "Staff Portal Login" : "Register Staff Account"}
+            {isLogin ? "CareGrid Portal Login" : "Create Account"}
           </h1>
           <p style={{ color: "#64748b", fontSize: "0.9rem", margin: 0 }}>
             {isLogin
-              ? "Access live emergency queue & department management"
-              : "Create an authorized account for hospital personnel"}
+              ? "Access live emergency queue, departments, or patient portal"
+              : "Register as a patient or hospital personnel"}
           </p>
         </div>
 
@@ -216,7 +228,7 @@ export default function Auth() {
                 <User size={18} color="#0ea5e9" />
                 <input
                   type="text"
-                  placeholder="Dr. Sarah Ahmed"
+                  placeholder="Sarah Ahmed"
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   style={{ border: "none", outline: "none", width: "100%", fontSize: "0.92rem" }}
@@ -227,13 +239,13 @@ export default function Auth() {
 
           <div>
             <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", color: "#334155", marginBottom: "0.3rem" }}>
-              Hospital Email
+              Email Address
             </label>
             <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "0.65rem 0.8rem" }}>
               <Mail size={18} color="#0ea5e9" />
               <input
                 type="email"
-                placeholder="staff@hospital.org"
+                placeholder={role === "Patient" ? "patient@example.com" : "staff@hospital.org"}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 style={{ border: "none", outline: "none", width: "100%", fontSize: "0.92rem" }}
@@ -257,25 +269,25 @@ export default function Auth() {
             </div>
           </div>
 
-          {!isLogin && (
-            <div>
-              <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", color: "#334155", marginBottom: "0.3rem" }}>
-                Designation / Role
-              </label>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "0.65rem 0.8rem", backgroundColor: "#fff" }}>
-                <Building size={18} color="#0ea5e9" />
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  style={{ border: "none", outline: "none", width: "100%", fontSize: "0.92rem", backgroundColor: "transparent" }}
-                >
-                  <option value="Doctor / Triage Nurse">Doctor / Triage Nurse</option>
-                  <option value="Department Head">Department Head</option>
-                  <option value="Hospital Administrator">Hospital Administrator</option>
-                </select>
-              </div>
+          {/* Role Selection Dropdown (Available for both Login and Registration) */}
+          <div>
+            <label style={{ display: "block", fontSize: "0.85rem", fontWeight: "600", color: "#334155", marginBottom: "0.3rem" }}>
+              Signing in as / Role
+            </label>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", border: "1px solid #cbd5e1", borderRadius: "8px", padding: "0.65rem 0.8rem", backgroundColor: "#fff" }}>
+              <Building size={18} color="#0ea5e9" />
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                style={{ border: "none", outline: "none", width: "100%", fontSize: "0.92rem", backgroundColor: "transparent" }}
+              >
+                <option value="Patient">Patient</option>
+                <option value="Doctor / Triage Nurse">Doctor / Triage Nurse</option>
+                <option value="Department Head">Department Head</option>
+                <option value="Hospital Administrator">Hospital Administrator</option>
+              </select>
             </div>
-          )}
+          </div>
 
           <button
             type="submit"
@@ -302,7 +314,7 @@ export default function Auth() {
 
         {/* Footer Link */}
         <div style={{ marginTop: "1.5rem", textAlign: "center", fontSize: "0.85rem", color: "#64748b" }}>
-          {isLogin ? "Don't have staff credentials? " : "Already registered? "}
+          {isLogin ? "Don't have an account? " : "Already registered? "}
           <button
             type="button"
             onClick={() => {
@@ -312,7 +324,7 @@ export default function Auth() {
             }}
             style={{ background: "none", border: "none", color: "#0ea5e9", fontWeight: "700", cursor: "pointer", textDecoration: "underline" }}
           >
-            {isLogin ? "Request Access" : "Sign In"}
+            {isLogin ? "Register Now" : "Sign In"}
           </button>
         </div>
       </div>

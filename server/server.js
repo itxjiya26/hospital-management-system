@@ -6,6 +6,7 @@ const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const departmentRoutes = require("./routes/departmentRoutes");
+const appointmentRoutes = require("./routes/appointmentRoutes"); // 🌟 1. Imported Appointment Routes
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.get("/api/db-status", (req, res) => {
 
 // API Routes
 app.use("/api/departments", departmentRoutes);
+app.use("/api/appointments", appointmentRoutes); // 🌟 2. Registered Appointment Route
 
 // 404 Handler
 app.use((req, res) => {

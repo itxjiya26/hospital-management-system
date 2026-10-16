@@ -1,12 +1,16 @@
-import { useState } from "react";
-import { PlusCircle, Edit, Trash2, Save, X, Building2, Bed, Check } from "lucide-react";
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { API_URL } from "../api";
+import { PlusCircle, Edit, Trash2, Save, X, Building2, Bed, Check, Calendar, Stethoscope } from "lucide-react";
 import { mockDepartments } from "../data/mockData";
 
 export default function Dashboard() {
   const [departments, setDepartments] = useState(mockDepartments);
   const [editingId, setEditingId] = useState(null);
+  const [activeTab, setActiveTab] = useState("departments"); // "departments" or "appointments"
+  const [appointments, setAppointments] = useState([]);
 
-  // Form State for Editing
+  // Form State for Editing Department
   const [editFormData, setEditFormData] = useState({
     name: "",
     code: "",
@@ -28,7 +32,24 @@ export default function Dashboard() {
     description: "Emergency care unit."
   });
 
-  // Start Editing
+  // Fetch appointments on load
+  useEffect(() => {
+    fetchAppointments();
+  }, []);
+
+  const fetchAppointments = () => {
+    axios.get(`${API_URL}/api/appointments`)
+      .then((res) => setAppointments(res.data))
+      .catch((err) => console.error("Error fetching appointments:", err));
+  };
+
+  const updateAppointmentStatus = (id, newStatus) => {
+    axios.put(`${API_URL}/api/appointments/${id}`, { status: newStatus })
+      .then(() => fetchAppointments())
+      .catch((err) => console.error("Error updating appointment status:", err));
+  };
+
+  // Start Editing Department
   const handleStartEdit = (dept) => {
     setEditingId(dept.id);
     setEditFormData({
@@ -40,7 +61,7 @@ export default function Dashboard() {
     });
   };
 
-  // Save Edit
+  // Save Edit Department
   const handleSaveEdit = (id) => {
     setDepartments(
       departments.map((dept) =>
@@ -99,172 +120,212 @@ export default function Dashboard() {
 
   return (
     <div style={{ padding: "2.5rem 2rem", maxWidth: "1150px", margin: "0 auto" }}>
+      
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "2rem", flexWrap: "wrap", gap: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", flexWrap: "wrap", gap: "1rem" }}>
         <div>
           <h1 style={{ fontSize: "2rem", fontWeight: "800", color: "#0c4a6e", margin: "0 0 0.5rem 0" }}>
-            Hospital Operations CRUD Hub
+            Hospital Management Dashboard
           </h1>
           <p style={{ color: "#64748b", margin: 0 }}>
-            Manage clinical unit configurations, bed allocation counters, and head doctors.
+            Manage clinical unit configurations, bed allocation counters, and patient appointments.
           </p>
         </div>
 
+        {activeTab === "departments" && (
+          <button
+            onClick={() => setShowAddModal(true)}
+            style={{
+              backgroundColor: "#0ea5e9",
+              color: "#ffffff",
+              padding: "0.75rem 1.25rem",
+              borderRadius: "10px",
+              fontWeight: "700",
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              boxShadow: "0 4px 14px rgba(14, 165, 233, 0.35)"
+            }}
+          >
+            <PlusCircle size={18} /> Add New Department
+          </button>
+        )}
+      </div>
+
+      {/* Navigation Tabs */}
+      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", borderBottom: "1px solid #e2e8f0", paddingBottom: "0.75rem" }}>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={() => setActiveTab("departments")}
           style={{
-            backgroundColor: "#0ea5e9",
-            color: "#ffffff",
-            padding: "0.75rem 1.25rem",
-            borderRadius: "10px",
+            background: activeTab === "departments" ? "#0ea5e9" : "#f8fafc",
+            color: activeTab === "departments" ? "#ffffff" : "#475569",
+            border: activeTab === "departments" ? "none" : "1px solid #cbd5e1",
+            padding: "0.6rem 1.2rem",
+            borderRadius: "8px",
             fontWeight: "700",
-            border: "none",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
-            gap: "0.5rem",
-            boxShadow: "0 4px 14px rgba(14, 165, 233, 0.35)"
+            gap: "0.5rem"
           }}
         >
-          <PlusCircle size={18} /> Add New Department
+          <Building2 size={18} /> Departments & Beds
+        </button>
+        <button
+          onClick={() => setActiveTab("appointments")}
+          style={{
+            background: activeTab === "appointments" ? "#0ea5e9" : "#f8fafc",
+            color: activeTab === "appointments" ? "#ffffff" : "#475569",
+            border: activeTab === "appointments" ? "none" : "1px solid #cbd5e1",
+            padding: "0.6rem 1.2rem",
+            borderRadius: "8px",
+            fontWeight: "700",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem"
+          }}
+        >
+          <Calendar size={18} /> Doctor Appointments ({appointments.length})
         </button>
       </div>
 
-      {/* CRUD Data Table */}
-      <div
-        style={{
-          backgroundColor: "#ffffff",
-          borderRadius: "16px",
-          border: "1px solid #e0f2fe",
-          boxShadow: "0 4px 20px rgba(2, 132, 199, 0.04)",
-          overflowX: "auto"
-        }}
-      >
-        <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.95rem" }}>
-          <thead>
-            <tr style={{ backgroundColor: "#f0f9ff", borderBottom: "1px solid #e0f2fe", color: "#0c4a6e" }}>
-              <th style={{ padding: "1rem 1.25rem", fontWeight: "700" }}>Code & Name</th>
-              <th style={{ padding: "1rem 1.25rem", fontWeight: "700" }}>Lead Doctor</th>
-              <th style={{ padding: "1rem 1.25rem", fontWeight: "700" }}>Total Beds</th>
-              <th style={{ padding: "1rem 1.25rem", fontWeight: "700" }}>Available Beds</th>
-              <th style={{ padding: "1rem 1.25rem", fontWeight: "700", textAlign: "right" }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {departments.map((dept) => {
-              const isEditing = editingId === dept.id;
+      {/* TAB 1: DEPARTMENTS CRUD */}
+      {activeTab === "departments" && (
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", border: "1px solid #e0f2fe", boxShadow: "0 4px 20px rgba(2, 132, 199, 0.04)", overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.95rem" }}>
+            <thead>
+              <tr style={{ backgroundColor: "#f0f9ff", borderBottom: "1px solid #e0f2fe", color: "#0c4a6e" }}>
+                <th style={{ padding: "1rem 1.25rem", fontWeight: "700" }}>Code & Name</th>
+                <th style={{ padding: "1rem 1.25rem", fontWeight: "700" }}>Lead Doctor</th>
+                <th style={{ padding: "1rem 1.25rem", fontWeight: "700" }}>Total Beds</th>
+                <th style={{ padding: "1rem 1.25rem", fontWeight: "700" }}>Available Beds</th>
+                <th style={{ padding: "1rem 1.25rem", fontWeight: "700", textAlign: "right" }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {departments.map((dept) => {
+                const isEditing = editingId === dept.id;
 
-              return (
-                <tr key={dept.id} style={{ borderBottom: "1px solid #f0f9ff" }}>
-                  {/* Name & Code */}
-                  <td style={{ padding: "1rem 1.25rem" }}>
-                    {isEditing ? (
-                      <div style={{ display: "flex", gap: "0.5rem" }}>
-                        <input
-                          type="text"
-                          style={{ width: "70px", padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }}
-                          value={editFormData.code}
-                          onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value })}
-                        />
-                        <input
-                          type="text"
-                          style={{ flex: 1, padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }}
-                          value={editFormData.name}
-                          onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                        />
-                      </div>
-                    ) : (
-                      <div>
-                        <div style={{ fontWeight: "700", color: "#0f172a" }}>{dept.name}</div>
-                        <div style={{ fontSize: "0.78rem", color: "#0ea5e9", fontWeight: "600" }}>{dept.code}</div>
-                      </div>
-                    )}
-                  </td>
+                return (
+                  <tr key={dept.id} style={{ borderBottom: "1px solid #f0f9ff" }}>
+                    <td style={{ padding: "1rem 1.25rem" }}>
+                      {isEditing ? (
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          <input type="text" style={{ width: "70px", padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }} value={editFormData.code} onChange={(e) => setEditFormData({ ...editFormData, code: e.target.value })} />
+                          <input type="text" style={{ flex: 1, padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }} value={editFormData.name} onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })} />
+                        </div>
+                      ) : (
+                        <div>
+                          <div style={{ fontWeight: "700", color: "#0f172a" }}>{dept.name}</div>
+                          <div style={{ fontSize: "0.78rem", color: "#0ea5e9", fontWeight: "600" }}>{dept.code}</div>
+                        </div>
+                      )}
+                    </td>
 
-                  {/* Doctor */}
-                  <td style={{ padding: "1rem 1.25rem", color: "#475569" }}>
-                    {isEditing ? (
-                      <input
-                        type="text"
-                        style={{ width: "100%", padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }}
-                        value={editFormData.leadDoctor}
-                        onChange={(e) => setEditFormData({ ...editFormData, leadDoctor: e.target.value })}
-                      />
-                    ) : (
-                      dept.leadDoctor
-                    )}
-                  </td>
+                    <td style={{ padding: "1rem 1.25rem", color: "#475569" }}>
+                      {isEditing ? (
+                        <input type="text" style={{ width: "100%", padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }} value={editFormData.leadDoctor} onChange={(e) => setEditFormData({ ...editFormData, leadDoctor: e.target.value })} />
+                      ) : (
+                        dept.leadDoctor
+                      )}
+                    </td>
 
-                  {/* Total Beds */}
-                  <td style={{ padding: "1rem 1.25rem", color: "#334155" }}>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        style={{ width: "70px", padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }}
-                        value={editFormData.totalBeds}
-                        onChange={(e) => setEditFormData({ ...editFormData, totalBeds: e.target.value })}
-                      />
-                    ) : (
-                      dept.totalBeds
-                    )}
-                  </td>
+                    <td style={{ padding: "1rem 1.25rem", color: "#334155" }}>
+                      {isEditing ? (
+                        <input type="number" style={{ width: "70px", padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }} value={editFormData.totalBeds} onChange={(e) => setEditFormData({ ...editFormData, totalBeds: e.target.value })} />
+                      ) : (
+                        dept.totalBeds
+                      )}
+                    </td>
 
-                  {/* Available Beds */}
-                  <td style={{ padding: "1rem 1.25rem" }}>
-                    {isEditing ? (
-                      <input
-                        type="number"
-                        style={{ width: "70px", padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }}
-                        value={editFormData.availableBeds}
-                        onChange={(e) => setEditFormData({ ...editFormData, availableBeds: e.target.value })}
-                      />
-                    ) : (
-                      <span style={{ fontWeight: "700", color: dept.availableBeds > 0 ? "#0284c7" : "#dc2626" }}>
-                        {dept.availableBeds} Free
-                      </span>
-                    )}
-                  </td>
+                    <td style={{ padding: "1rem 1.25rem" }}>
+                      {isEditing ? (
+                        <input type="number" style={{ width: "70px", padding: "0.4rem", borderRadius: "6px", border: "1px solid #cbd5e1" }} value={editFormData.availableBeds} onChange={(e) => setEditFormData({ ...editFormData, availableBeds: e.target.value })} />
+                      ) : (
+                        <span style={{ fontWeight: "700", color: dept.availableBeds > 0 ? "#0284c7" : "#dc2626" }}>
+                          {dept.availableBeds} Free
+                        </span>
+                      )}
+                    </td>
 
-                  {/* Action Buttons */}
-                  <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
-                    {isEditing ? (
-                      <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-                        <button
-                          onClick={() => handleSaveEdit(dept.id)}
-                          style={{ backgroundColor: "#16a34a", color: "#fff", border: "none", padding: "0.4rem 0.6rem", borderRadius: "6px", cursor: "pointer" }}
-                        >
-                          <Save size={16} />
+                    <td style={{ padding: "1rem 1.25rem", textAlign: "right" }}>
+                      {isEditing ? (
+                        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+                          <button onClick={() => handleSaveEdit(dept.id)} style={{ backgroundColor: "#16a34a", color: "#fff", border: "none", padding: "0.4rem 0.6rem", borderRadius: "6px", cursor: "pointer" }}><Save size={16} /></button>
+                          <button onClick={() => setEditingId(null)} style={{ backgroundColor: "#64748b", color: "#fff", border: "none", padding: "0.4rem 0.6rem", borderRadius: "6px", cursor: "pointer" }}><X size={16} /></button>
+                        </div>
+                      ) : (
+                        <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+                          <button onClick={() => handleStartEdit(dept)} style={{ backgroundColor: "#f0f9ff", color: "#0284c7", border: "1px solid #bae6fd", padding: "0.4rem 0.6rem", borderRadius: "6px", cursor: "pointer" }}><Edit size={16} /></button>
+                          <button onClick={() => handleDelete(dept.id)} style={{ backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "0.4rem 0.6rem", borderRadius: "6px", cursor: "pointer" }}><Trash2 size={16} /></button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* TAB 2: DOCTOR APPOINTMENTS SCHEDULE */}
+      {activeTab === "appointments" && (
+        <div style={{ backgroundColor: "#ffffff", borderRadius: "16px", padding: "1.5rem", border: "1px solid #e0f2fe", boxShadow: "0 4px 20px rgba(2, 132, 199, 0.04)" }}>
+          <h3 style={{ color: "#0c4a6e", marginTop: 0, marginBottom: "1rem" }}>🩺 Patient Appointments Schedule</h3>
+          
+          {appointments.length === 0 ? (
+            <p style={{ color: "#64748b", padding: "2rem", textAlign: "center" }}>No appointments booked yet.</p>
+          ) : (
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.92rem" }}>
+                <thead>
+                  <tr style={{ backgroundColor: "#f0f9ff", borderBottom: "2px solid #e2e8f0", color: "#0c4a6e" }}>
+                    <th style={{ padding: "10px" }}>Patient Name</th>
+                    <th style={{ padding: "10px" }}>Email</th>
+                    <th style={{ padding: "10px" }}>Department</th>
+                    <th style={{ padding: "10px" }}>Date & Time</th>
+                    <th style={{ padding: "10px" }}>Reason</th>
+                    <th style={{ padding: "10px" }}>Status</th>
+                    <th style={{ padding: "10px", textAlign: "right" }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {appointments.map((app) => (
+                    <tr key={app._id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "10px", fontWeight: "600", color: "#0f172a" }}>{app.patientName}</td>
+                      <td style={{ padding: "10px", color: "#64748b" }}>{app.patientEmail}</td>
+                      <td style={{ padding: "10px", color: "#0284c7", fontWeight: "600" }}>{app.department}</td>
+                      <td style={{ padding: "10px", color: "#334155" }}>{app.appointmentDate} at {app.appointmentTime}</td>
+                      <td style={{ padding: "10px", color: "#334155" }}>{app.reason}</td>
+                      <td style={{ padding: "10px" }}>
+                        <span style={{
+                          padding: "0.2rem 0.6rem", borderRadius: "12px", fontSize: "0.75rem", fontWeight: "700",
+                          backgroundColor: app.status === "Completed" ? "#dcfce7" : app.status === "Cancelled" ? "#fee2e2" : "#dbeafe",
+                          color: app.status === "Completed" ? "#15803d" : app.status === "Cancelled" ? "#991b1b" : "#1e40af"
+                        }}>
+                          {app.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: "10px", textAlign: "right", display: "flex", gap: "0.4rem", justifyContent: "flex-end" }}>
+                        <button onClick={() => updateAppointmentStatus(app._id, "Completed")} style={{ backgroundColor: "#16a34a", color: "#fff", border: "none", padding: "0.35rem 0.6rem", borderRadius: "6px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600" }}>
+                          Complete
                         </button>
-                        <button
-                          onClick={() => setEditingId(null)}
-                          style={{ backgroundColor: "#64748b", color: "#fff", border: "none", padding: "0.4rem 0.6rem", borderRadius: "6px", cursor: "pointer" }}
-                        >
-                          <X size={16} />
+                        <button onClick={() => updateAppointmentStatus(app._id, "Cancelled")} style={{ backgroundColor: "#dc2626", color: "#fff", border: "none", padding: "0.35rem 0.6rem", borderRadius: "6px", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600" }}>
+                          Cancel
                         </button>
-                      </div>
-                    ) : (
-                      <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-                        <button
-                          onClick={() => handleStartEdit(dept)}
-                          style={{ backgroundColor: "#f0f9ff", color: "#0284c7", border: "1px solid #bae6fd", padding: "0.4rem 0.6rem", borderRadius: "6px", cursor: "pointer" }}
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(dept.id)}
-                          style={{ backgroundColor: "#fef2f2", color: "#dc2626", border: "1px solid #fecaca", padding: "0.4rem 0.6rem", borderRadius: "6px", cursor: "pointer" }}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Create New Department Modal */}
       {showAddModal && (

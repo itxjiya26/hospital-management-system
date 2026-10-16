@@ -1,4 +1,5 @@
 import { API_URL } from "../api"; // Adjust the path if needed depending on where the file is located in 'src'import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import axios from 'axios';
 import DepartmentCard from '../components/DepartmentCard';
 import DepartmentSkeleton from '../components/DepartmentSkeleton';

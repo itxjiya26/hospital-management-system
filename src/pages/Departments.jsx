@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { API_URL } from "../api"; // Adjust the path if needed depending on where the file is located in 'src'import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DepartmentCard from '../components/DepartmentCard';
 import DepartmentSkeleton from '../components/DepartmentSkeleton';
@@ -20,7 +20,7 @@ export default function Departments() {
   const fetchDepartments = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/departments");
+      const res = await axios.get(`${API_URL}/api/departments`);
       setDepartments(res.data);
     } catch (err) {
       console.error("Failed to load departments:", err);

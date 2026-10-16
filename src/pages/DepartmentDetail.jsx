@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+ import { API_URL } from "../api"; // Adjust the path if needed depending on where the file is located in 'src' import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Stethoscope, Activity, CheckCircle2 } from "lucide-react";
 
@@ -23,7 +23,7 @@ export default function DepartmentDetail() {
     setLoading(true);
     console.log("Fetching department with ID/Code:", id);
 
-    fetch(`http://localhost:5000/api/departments/${id}`)
+    fetch(`${API_URL}/api/departments/${id}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Department with ID "${id}" not found.`);

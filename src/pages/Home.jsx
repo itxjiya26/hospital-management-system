@@ -1,3 +1,4 @@
+import { API_URL } from "../api"; // Adjust the path if needed depending on where the file is located in 'src'
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Activity, ShieldAlert, Bed, Ambulance, ArrowRight, Building2 } from "lucide-react";
@@ -7,7 +8,7 @@ export default function Home() {
   const [departments, setDepartments] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5000/api/departments")
+    axios.get(`${API_URL}/api/departments`)
       .then(res => setDepartments(res.data))
       .catch(err => console.error("Failed to load departments:", err));
   }, []);
